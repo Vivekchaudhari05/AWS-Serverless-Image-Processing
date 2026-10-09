@@ -1,0 +1,14 @@
+{
+  "Rules": [
+    {
+      "ID": "DeleteUploadsAfter30Days",
+      "Status": "Enabled",
+      "Filter": {
+        "Prefix": "uploads/"
+      },
+      "Expiration": {
+        "Days": 30
+      }
+    }
+  ]
+}

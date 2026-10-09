@@ -1,0 +1,1093 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="theme-color" content="#f5f7fb">
+    <title>PixelFlow | Serverless Image Studio</title>
+
+    <style>
+        :root {
+            font-family: Inter, "Segoe UI", Arial, sans-serif;
+            color: #182230;
+            background: #f5f7fb;
+            font-synthesis: none;
+            text-rendering: optimizeLegibility;
+        }
+
+        * { box-sizing: border-box; }
+
+        body { margin: 0; }
+
+        button, input { font: inherit; }
+
+        button { cursor: pointer; }
+
+        [hidden] { display: none !important; }
+
+        .app-shell {
+            display: grid;
+            grid-template-columns: 238px minmax(0, 1fr);
+            min-height: 100vh;
+        }
+
+        .sidebar {
+            padding: 28px 18px;
+            background: #111b2e;
+            color: #fff;
+        }
+
+        .brand {
+            display: flex;
+            align-items: center;
+            gap: 11px;
+            padding: 0 10px 34px;
+            font-size: 19px;
+            font-weight: 750;
+            letter-spacing: -.5px;
+        }
+
+        .brand-icon {
+            display: grid;
+            place-items: center;
+            width: 38px;
+            height: 38px;
+            border-radius: 12px;
+            background: #6558e8;
+            font-size: 21px;
+        }
+
+        .nav-label {
+            padding: 0 12px;
+            margin: 10px 0 12px;
+            color: #8793a8;
+            font-size: 10px;
+            font-weight: 800;
+            letter-spacing: 1.5px;
+            text-transform: uppercase;
+        }
+
+        .nav-item {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            width: 100%;
+            margin: 5px 0;
+            padding: 12px;
+            border: 0;
+            border-radius: 9px;
+            background: transparent;
+            color: #b8c3d5;
+            text-align: left;
+            font-size: 13px;
+            font-family: inherit;
+            transition: background .2s, color .2s;
+        }
+
+        .nav-item:hover { background: #202d43; color: #fff; }
+
+        .nav-item.active {
+            color: #fff;
+            background: #2c3851;
+        }
+
+        .nav-symbol {
+            width: 20px;
+            text-align: center;
+            font-size: 16px;
+        }
+
+        .sidebar-note {
+            margin-top: 42px;
+            padding: 16px;
+            border: 1px solid #344159;
+            border-radius: 12px;
+            color: #bdc7d8;
+            font-size: 12px;
+            line-height: 1.7;
+        }
+
+        .sidebar-note strong {
+            display: block;
+            margin-bottom: 6px;
+            color: #fff;
+        }
+
+        main { min-width: 0; }
+
+        .topbar {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            gap: 16px;
+            padding: 20px 34px;
+            background: #fff;
+            border-bottom: 1px solid #e8ebf2;
+        }
+
+        .breadcrumb { color: #8993a4; font-size: 12px; }
+        .breadcrumb strong { color: #344054; }
+
+        .region-pill {
+            padding: 8px 12px;
+            border: 1px solid #e4e8f0;
+            border-radius: 20px;
+            color: #475467;
+            font-size: 12px;
+            white-space: nowrap;
+        }
+
+        .region-dot {
+            display: inline-block;
+            width: 7px;
+            height: 7px;
+            margin-right: 7px;
+            border-radius: 50%;
+            background: #22a06b;
+        }
+
+        .content {
+            width: min(1180px, 100%);
+            margin: 0 auto;
+            padding: 34px;
+        }
+
+        .page-heading {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            gap: 18px;
+            margin-bottom: 26px;
+        }
+
+        .eyebrow {
+            margin-bottom: 9px;
+            color: #6558e8;
+            font-size: 11px;
+            font-weight: 800;
+            letter-spacing: 1.5px;
+            text-transform: uppercase;
+        }
+
+        h1 {
+            margin: 0;
+            font-size: clamp(25px, 3vw, 34px);
+            letter-spacing: -1.1px;
+        }
+
+        .subtitle {
+            margin: 10px 0 0;
+            color: #667085;
+            font-size: 14px;
+            line-height: 1.7;
+        }
+
+        .secure-label {
+            padding: 9px 12px;
+            border: 1px solid #dcefe5;
+            border-radius: 9px;
+            background: #f0faf5;
+            color: #16794c;
+            font-size: 11px;
+            font-weight: 700;
+            white-space: nowrap;
+        }
+
+        .stats {
+            display: grid;
+            grid-template-columns: repeat(3, minmax(0, 1fr));
+            gap: 16px;
+            margin-bottom: 24px;
+        }
+
+        .stat-card, .panel, .output-card {
+            border: 1px solid #e8ebf2;
+            border-radius: 15px;
+            background: #fff;
+            box-shadow: 0 3px 12px rgb(16 24 40 / 3%);
+        }
+
+        .stat-card { padding: 19px; }
+
+        .stat-top {
+            display: flex;
+            justify-content: space-between;
+            gap: 10px;
+            color: #667085;
+            font-size: 12px;
+        }
+
+        .stat-icon {
+            display: grid;
+            place-items: center;
+            width: 34px;
+            height: 34px;
+            border-radius: 10px;
+            background: #f0eeff;
+            color: #6558e8;
+            font-size: 17px;
+        }
+
+        .stat-value {
+            margin-top: 15px;
+            font-size: 22px;
+            font-weight: 750;
+            letter-spacing: -.5px;
+        }
+
+        .stat-foot {
+            margin-top: 5px;
+            color: #98a2b3;
+            font-size: 11px;
+        }
+
+        .workspace {
+            display: grid;
+            grid-template-columns: minmax(0, 1.35fr) minmax(270px, .85fr);
+            gap: 20px;
+            align-items: start;
+        }
+
+        .panel { overflow: hidden; }
+
+        .panel-header {
+            padding: 20px 22px;
+            border-bottom: 1px solid #edf0f5;
+        }
+
+        h2 {
+            margin: 0;
+            font-size: 15px;
+            letter-spacing: -.2px;
+        }
+
+        .panel-description {
+            margin: 7px 0 0;
+            color: #7b8495;
+            font-size: 12px;
+            line-height: 1.6;
+        }
+
+        .panel-body { padding: 22px; }
+
+        .drop-zone {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            min-height: 235px;
+            padding: 26px;
+            border: 1.5px dashed #c9c5f7;
+            border-radius: 13px;
+            background: #faf9ff;
+            text-align: center;
+            transition: border-color .2s, background .2s;
+        }
+
+        .drop-zone.dragging {
+            border-color: #6558e8;
+            background: #f0eeff;
+        }
+
+        .upload-icon {
+            display: grid;
+            place-items: center;
+            width: 54px;
+            height: 54px;
+            margin-bottom: 16px;
+            border-radius: 16px;
+            background: #ece9ff;
+            color: #6558e8;
+            font-size: 25px;
+        }
+
+        .drop-zone strong { font-size: 14px; }
+
+        .drop-zone p {
+            margin: 9px 0 16px;
+            color: #7b8495;
+            font-size: 12px;
+            line-height: 1.7;
+        }
+
+        .file-button, .primary-button, .secondary-button,
+        .download-button {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            min-height: 39px;
+            padding: 0 15px;
+            border: 0;
+            border-radius: 9px;
+            font-size: 12px;
+            font-weight: 700;
+            text-decoration: none;
+            transition: background .2s, color .2s;
+        }
+
+        .file-button, .primary-button, .download-button {
+            background: #6558e8;
+            color: #fff;
+        }
+
+        .file-button:hover, .primary-button:hover,
+        .download-button:hover { background: #5144d6; }
+
+        .secondary-button {
+            border: 1px solid #e1e5ee;
+            background: #fff;
+            color: #344054;
+        }
+
+        .secondary-button:hover { background: #f5f7fb; }
+
+        .primary-button:disabled,
+        .download-button:disabled {
+            cursor: not-allowed;
+            opacity: .6;
+        }
+
+        #imageInput {
+            position: absolute;
+            width: 1px;
+            height: 1px;
+            overflow: hidden;
+            clip: rect(0, 0, 0, 0);
+            white-space: nowrap;
+        }
+
+        .selected-file {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            margin-top: 16px;
+            padding: 12px;
+            border: 1px solid #e8ebf2;
+            border-radius: 10px;
+            background: #fff;
+        }
+
+        .file-preview {
+            display: grid;
+            place-items: center;
+            flex: 0 0 44px;
+            width: 44px;
+            height: 44px;
+            overflow: hidden;
+            border-radius: 8px;
+            background: #f0eeff;
+            color: #6558e8;
+        }
+
+        .file-preview img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+
+        .file-meta { min-width: 0; flex: 1; }
+
+        .file-name {
+            overflow: hidden;
+            font-size: 12px;
+            font-weight: 700;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+        }
+
+        .file-size {
+            margin-top: 5px;
+            color: #7b8495;
+            font-size: 11px;
+        }
+
+        .file-status {
+            color: #16794c;
+            font-size: 11px;
+            font-weight: 700;
+            text-align: right;
+        }
+
+        .upload-actions {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            gap: 12px;
+            margin-top: 18px;
+        }
+
+        .hint { color: #98a2b3; font-size: 11px; }
+
+        #status {
+            margin: 16px 0 0;
+            padding: 12px 14px;
+            border-radius: 9px;
+            background: #f5f7fb;
+            color: #667085;
+            font-size: 12px;
+            line-height: 1.6;
+            overflow-wrap: anywhere;
+        }
+
+        #status:empty { display: none; }
+
+        #status[data-state="success"] {
+            background: #effaf4;
+            color: #16794c;
+        }
+
+        #status[data-state="error"] {
+            background: #fff2f0;
+            color: #b42318;
+        }
+
+        #status[data-state="working"] {
+            background: #f2f1ff;
+            color: #5144d6;
+        }
+
+        .pipeline { padding: 20px 22px; }
+
+        .pipeline-step {
+            display: flex;
+            align-items: flex-start;
+            gap: 12px;
+            padding: 5px 0 19px;
+        }
+
+        .pipeline-step:last-child { padding-bottom: 0; }
+
+        .step-icon {
+            display: grid;
+            place-items: center;
+            flex: 0 0 34px;
+            width: 34px;
+            height: 34px;
+            border: 1px solid #e3e7ef;
+            border-radius: 10px;
+            background: #f8f9fc;
+            color: #667085;
+            font-size: 14px;
+        }
+
+        .pipeline-step strong {
+            display: block;
+            padding-top: 2px;
+            font-size: 12px;
+        }
+
+        .pipeline-step p {
+            margin: 5px 0 0;
+            color: #7b8495;
+            font-size: 11px;
+            line-height: 1.6;
+        }
+
+        .output-grid {
+            display: grid;
+            grid-template-columns: repeat(3, minmax(0, 1fr));
+            gap: 14px;
+        }
+
+        .output-card {
+            min-width: 0;
+            padding: 15px;
+            box-shadow: none;
+        }
+
+        .output-placeholder {
+            display: grid;
+            place-items: center;
+            min-height: 125px;
+            margin-bottom: 13px;
+            overflow: hidden;
+            border-radius: 9px;
+            background: linear-gradient(135deg, #f0eeff, #f8f9fc);
+            color: #9a91ee;
+            font-size: 25px;
+        }
+
+        .output-placeholder img {
+            display: block;
+            width: 100%;
+            max-height: 220px;
+            object-fit: contain;
+        }
+
+        .output-card strong { font-size: 12px; }
+
+        .output-card p {
+            margin: 6px 0 0;
+            color: #7b8495;
+            font-size: 11px;
+            line-height: 1.5;
+            overflow-wrap: anywhere;
+        }
+
+        .output-card .download-button {
+            width: 100%;
+            margin-top: 12px;
+        }
+
+        .page-toolbar {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            gap: 16px;
+            margin-bottom: 24px;
+        }
+
+        .toolbar-actions {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 8px;
+        }
+
+        .table-wrap { overflow-x: auto; }
+
+        .data-table {
+            width: 100%;
+            border-collapse: collapse;
+            text-align: left;
+            font-size: 12px;
+        }
+
+        .data-table th {
+            padding: 14px 18px;
+            background: #fafbfe;
+            color: #667085;
+            font-size: 11px;
+            font-weight: 700;
+            white-space: nowrap;
+        }
+
+        .data-table td {
+            padding: 15px 18px;
+            border-top: 1px solid #edf0f5;
+            color: #344054;
+            vertical-align: middle;
+        }
+
+        .data-table tr:hover td { background: #fcfcff; }
+
+        .file-cell {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            min-width: 180px;
+        }
+
+        .file-cell-icon {
+            display: grid;
+            place-items: center;
+            flex: 0 0 36px;
+            width: 36px;
+            height: 36px;
+            border-radius: 9px;
+            background: #f0eeff;
+            color: #6558e8;
+        }
+
+        .file-cell-name {
+            max-width: 220px;
+            overflow-wrap: anywhere;
+            font-weight: 700;
+        }
+
+        .muted { color: #98a2b3 !important; }
+
+        .status-pill {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            padding: 5px 9px;
+            border-radius: 20px;
+            background: #f2f4f7;
+            color: #475467;
+            font-size: 10px;
+            font-weight: 700;
+            white-space: nowrap;
+        }
+
+        .status-pill.success {
+            background: #effaf4;
+            color: #16794c;
+        }
+
+        .status-pill.working {
+            background: #f2f1ff;
+            color: #5144d6;
+        }
+
+        .status-pill.error {
+            background: #fff2f0;
+            color: #b42318;
+        }
+
+        .empty-state {
+            padding: 54px 20px;
+            text-align: center;
+        }
+
+        .empty-icon {
+            display: grid;
+            place-items: center;
+            width: 58px;
+            height: 58px;
+            margin: 0 auto 15px;
+            border-radius: 16px;
+            background: #f0eeff;
+            color: #6558e8;
+            font-size: 25px;
+        }
+
+        .empty-state h2 { margin-bottom: 9px; }
+
+        .empty-state p {
+            max-width: 430px;
+            margin: 0 auto 18px;
+            color: #7b8495;
+            font-size: 12px;
+            line-height: 1.7;
+        }
+
+        .storage-summary {
+            display: grid;
+            grid-template-columns: repeat(3, minmax(0, 1fr));
+            gap: 16px;
+            margin-bottom: 22px;
+        }
+
+        .storage-stat {
+            padding: 20px;
+            border: 1px solid #e8ebf2;
+            border-radius: 13px;
+            background: #fff;
+        }
+
+        .storage-stat span {
+            display: block;
+            color: #667085;
+            font-size: 12px;
+        }
+
+        .storage-stat strong {
+            display: block;
+            margin-top: 11px;
+            font-size: 23px;
+            letter-spacing: -.5px;
+        }
+
+        .storage-stat p {
+            margin: 6px 0 0;
+            color: #98a2b3;
+            font-size: 11px;
+        }
+
+        .storage-variant {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .storage-thumb {
+            display: grid;
+            place-items: center;
+            flex: 0 0 48px;
+            width: 48px;
+            height: 48px;
+            overflow: hidden;
+            border-radius: 9px;
+            background: #f0eeff;
+            color: #6558e8;
+        }
+
+        .storage-thumb img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+
+        .footer {
+            padding: 24px 0 4px;
+            color: #98a2b3;
+            font-size: 11px;
+            text-align: center;
+        }
+
+        @media (max-width: 960px) {
+            .app-shell { grid-template-columns: 190px minmax(0, 1fr); }
+            .content { padding: 25px 20px; }
+            .topbar { padding: 18px 22px; }
+            .workspace { grid-template-columns: 1fr; }
+            .output-grid { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+        }
+
+        @media (max-width: 650px) {
+            .app-shell { display: block; }
+            .sidebar { padding: 14px; }
+            .brand { padding: 0 5px 14px; }
+            .sidebar .nav-label, .sidebar-note { display: none; }
+            .sidebar nav {
+                display: flex;
+                gap: 6px;
+                overflow-x: auto;
+            }
+            .nav-item {
+                flex: 0 0 auto;
+                width: auto;
+                margin: 0;
+                padding: 10px;
+            }
+            .nav-item span:last-child { white-space: nowrap; }
+            .topbar { padding: 14px 18px; }
+            .content { padding: 24px 15px; }
+            .page-heading, .page-toolbar { flex-direction: column; }
+            .stats, .storage-summary { grid-template-columns: 1fr; gap: 10px; }
+            .stat-card { padding: 15px; }
+            .stat-value { margin-top: 9px; }
+            .output-grid { grid-template-columns: 1fr; }
+            .upload-actions { align-items: flex-start; flex-direction: column; }
+            .region-pill { font-size: 10px; }
+            .data-table th, .data-table td { padding: 12px; }
+        }
+    </style>
+</head>
+
+<body>
+<div class="app-shell">
+    <aside class="sidebar">
+        <div class="brand">
+            <span class="brand-icon">✦</span>
+            <span>PixelFlow</span>
+        </div>
+
+        <div class="nav-label">Workspace</div>
+
+        <nav aria-label="Main navigation">
+            <button type="button" class="nav-item active" data-page="studio">
+                <span class="nav-symbol">▦</span>
+                <span>Image Studio</span>
+            </button>
+
+            <button type="button" class="nav-item" data-page="history">
+                <span class="nav-symbol">◷</span>
+                <span>Processing History</span>
+            </button>
+
+            <button type="button" class="nav-item" data-page="storage">
+                <span class="nav-symbol">☁</span>
+                <span>Storage</span>
+            </button>
+        </nav>
+
+        <div class="sidebar-note">
+            <strong>Powered by AWS</strong>
+            Images are uploaded securely to Amazon S3 and processed automatically by AWS Lambda.
+        </div>
+    </aside>
+
+    <main>
+        <header class="topbar">
+            <div class="breadcrumb">
+                Workspace &nbsp;/&nbsp; <strong id="breadcrumbTitle">Image Studio</strong>
+            </div>
+            <div class="region-pill">
+                <span class="region-dot"></span> AWS Mumbai · ap-south-1
+            </div>
+        </header>
+
+        <div class="content">
+
+            <!-- IMAGE STUDIO -->
+            <section id="page-studio" class="page-view">
+                <div class="page-heading">
+                    <div>
+                        <div class="eyebrow">Serverless image platform</div>
+                        <h1>Image Processing Studio</h1>
+                        <p class="subtitle">
+                            Upload once. Let AWS handle the processing.<br>
+                            Create optimized image sizes in seconds.
+                        </p>
+                    </div>
+                    <div class="secure-label">♧ &nbsp; Secure upload</div>
+                </div>
+
+                <section class="stats" aria-label="Platform features">
+                    <article class="stat-card">
+                        <div class="stat-top">
+                            <span>Supported formats</span>
+                            <span class="stat-icon">▧</span>
+                        </div>
+                        <div class="stat-value">JPG / PNG</div>
+                        <div class="stat-foot">Common image formats</div>
+                    </article>
+
+                    <article class="stat-card">
+                        <div class="stat-top">
+                            <span>Maximum upload</span>
+                            <span class="stat-icon">⇧</span>
+                        </div>
+                        <div class="stat-value">10 MB</div>
+                        <div class="stat-foot">Per image</div>
+                    </article>
+
+                    <article class="stat-card">
+                        <div class="stat-top">
+                            <span>Output variations</span>
+                            <span class="stat-icon">◫</span>
+                        </div>
+                        <div class="stat-value">3 sizes</div>
+                        <div class="stat-foot">Thumbnail, medium and large</div>
+                    </article>
+                </section>
+
+                <section class="workspace">
+                    <article class="panel">
+                        <div class="panel-header">
+                            <h2>Upload an image</h2>
+                            <p class="panel-description">
+                                Choose a local image to start your processing workflow.
+                            </p>
+                        </div>
+
+                        <div class="panel-body">
+                            <div class="drop-zone" id="dropZone">
+                                <div class="upload-icon">↑</div>
+                                <strong>Drop your image here</strong>
+                                <p>
+                                    or browse your device to select a JPG or PNG file<br>
+                                    Maximum file size: 10 MB
+                                </p>
+                                <label class="file-button" for="imageInput">Choose image</label>
+                            </div>
+
+                            <input type="file" id="imageInput"
+                                accept=".jpg,.jpeg,.png,image/jpeg,image/png">
+
+                            <div class="selected-file" id="selectedFile" hidden>
+                                <div class="file-preview" id="filePreview">▧</div>
+                                <div class="file-meta">
+                                    <div class="file-name" id="fileName">No file selected</div>
+                                    <div class="file-size" id="fileSize">—</div>
+                                </div>
+                                <div class="file-status" id="fileStatus">Ready</div>
+                            </div>
+
+                            <div class="upload-actions">
+                                <span class="hint">Secure, time-limited upload URL</span>
+                                <button type="button" id="uploadButton" class="primary-button">
+                                    Upload &amp; process&nbsp; →
+                                </button>
+                            </div>
+
+                            <p id="status" role="status" aria-live="polite">
+                                Select an image to begin.
+                            </p>
+                        </div>
+                    </article>
+
+                    <article class="panel">
+                        <div class="panel-header">
+                            <h2>How it works</h2>
+                            <p class="panel-description">
+                                Your image moves through this serverless pipeline.
+                            </p>
+                        </div>
+
+                        <div class="pipeline">
+                            <div class="pipeline-step">
+                                <div class="step-icon">↑</div>
+                                <div>
+                                    <strong>1. Secure upload</strong>
+                                    <p>A presigned URL sends the image to the S3 uploads folder.</p>
+                                </div>
+                            </div>
+
+                            <div class="pipeline-step">
+                                <div class="step-icon">⚙</div>
+                                <div>
+                                    <strong>2. Automatic processing</strong>
+                                    <p>An S3 event invokes Lambda to validate and resize the image.</p>
+                                </div>
+                            </div>
+
+                            <div class="pipeline-step">
+                                <div class="step-icon">▧</div>
+                                <div>
+                                    <strong>3. Three output sizes</strong>
+                                    <p>Processed images are saved to separate S3 folders.</p>
+                                </div>
+                            </div>
+
+                            <div class="pipeline-step">
+                                <div class="step-icon">◷</div>
+                                <div>
+                                    <strong>4. Monitoring</strong>
+                                    <p>CloudWatch captures execution logs and processing errors.</p>
+                                </div>
+                            </div>
+                        </div>
+                    </article>
+                </section>
+
+                <section class="panel" style="margin-top:24px">
+                    <div class="panel-header">
+                        <h2>Processing outputs</h2>
+                        <p class="panel-description">
+                            Your processed image previews and download links appear here.
+                        </p>
+                    </div>
+
+                    <div class="panel-body">
+                        <div class="output-grid">
+                            <article class="output-card" data-output-card="thumbnail">
+                                <div class="output-placeholder" id="preview-thumbnail">▧</div>
+                                <strong>Thumbnail</strong>
+                                <p>150 × 150 px target</p>
+                                <p id="size-thumbnail" class="muted">Awaiting output</p>
+                                <button type="button" class="download-button"
+                                    data-download-variant="thumbnail" disabled>
+                                    Download
+                                </button>
+                            </article>
+
+                            <article class="output-card" data-output-card="medium">
+                                <div class="output-placeholder" id="preview-medium">▧</div>
+                                <strong>Medium</strong>
+                                <p>800 px maximum dimension</p>
+                                <p id="size-medium" class="muted">Awaiting output</p>
+                                <button type="button" class="download-button"
+                                    data-download-variant="medium" disabled>
+                                    Download
+                                </button>
+                            </article>
+
+                            <article class="output-card" data-output-card="large">
+                                <div class="output-placeholder" id="preview-large">▧</div>
+                                <strong>Large</strong>
+                                <p>1600 px maximum dimension</p>
+                                <p id="size-large" class="muted">Awaiting output</p>
+                                <button type="button" class="download-button"
+                                    data-download-variant="large" disabled>
+                                    Download
+                                </button>
+                            </article>
+                        </div>
+                    </div>
+                </section>
+            </section>
+
+            <!-- PROCESSING HISTORY -->
+            <section id="page-history" class="page-view" hidden>
+                <div class="page-toolbar">
+                    <div>
+                        <div class="eyebrow">Your activity</div>
+                        <h1>Processing History</h1>
+                        <p class="subtitle">
+                            Review uploads and processing results recorded in this browser session.
+                        </p>
+                    </div>
+                    <div class="toolbar-actions">
+                        <button type="button" class="secondary-button" id="refreshHistoryButton">
+                            ↻ Refresh
+                        </button>
+                        <button type="button" class="primary-button" data-go-page="studio">
+                            + New upload
+                        </button>
+                    </div>
+                </div>
+
+                <section class="stats">
+                    <article class="stat-card">
+                        <div class="stat-top"><span>Uploads this session</span><span>▧</span></div>
+                        <div class="stat-value" id="historyTotal">0</div>
+                        <div class="stat-foot">Recorded in this browser tab</div>
+                    </article>
+                    <article class="stat-card">
+                        <div class="stat-top"><span>Completed</span><span>✓</span></div>
+                        <div class="stat-value" id="historyCompleted">0</div>
+                        <div class="stat-foot">All three variants available</div>
+                    </article>
+                    <article class="stat-card">
+                        <div class="stat-top"><span>Outputs generated</span><span>◫</span></div>
+                        <div class="stat-value" id="historyOutputs">0</div>
+                        <div class="stat-foot">Available processed variants</div>
+                    </article>
+                </section>
+
+                <section class="panel">
+                    <div class="panel-header">
+                        <h2>Recent uploads</h2>
+                        <p class="panel-description">
+                            Select View results to open the processed previews in Image Studio.
+                        </p>
+                    </div>
+                    <div id="historyContent"></div>
+                </section>
+            </section>
+
+            <!-- STORAGE -->
+            <section id="page-storage" class="page-view" hidden>
+                <div class="page-toolbar">
+                    <div>
+                        <div class="eyebrow">Processed assets</div>
+                        <h1>Storage</h1>
+                        <p class="subtitle">
+                            Browse processed variants available from your uploads in this session.
+                        </p>
+                    </div>
+                    <div class="toolbar-actions">
+                        <button type="button" class="secondary-button" id="refreshStorageButton">
+                            ↻ Refresh
+                        </button>
+                        <button type="button" class="primary-button" data-go-page="studio">
+                            + Upload image
+                        </button>
+                    </div>
+                </div>
+
+                <section class="storage-summary">
+                    <article class="storage-stat">
+                        <span>Processed variants</span>
+                        <strong id="storageObjectCount">0</strong>
+                        <p>Available image outputs</p>
+                    </article>
+                    <article class="storage-stat">
+                        <span>Source uploads</span>
+                        <strong id="storageSourceCount">0</strong>
+                        <p>Recorded in this session</p>
+                    </article>
+                    <article class="storage-stat">
+                        <span>Storage location</span>
+                        <strong style="font-size:19px">S3</strong>
+                        <p>Private bucket · ap-south-1</p>
+                    </article>
+                </section>
+
+                <section class="panel">
+                    <div class="panel-header">
+                        <h2>Processed files</h2>
+                        <p class="panel-description">
+                            Files are accessed using temporary presigned URLs. Your S3 bucket remains private.
+                        </p>
+                    </div>
+                    <div id="storageContent"></div>
+                </section>
+
+                <p class="panel-description" style="margin:14px 2px 0">
+                    This view shows outputs loaded during the current browser session, not a complete S3 bucket inventory.
+                </p>
+            </section>
+
+            <footer class="footer">
+                PixelFlow · Serverless Image Processing on AWS · Amazon S3, Lambda and CloudWatch
+            </footer>
+        </div>
+    </main>
+</div>
+
+<script src="app.js"></script>
+</body>
+</html>
